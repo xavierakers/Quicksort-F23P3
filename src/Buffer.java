@@ -12,7 +12,6 @@ public class Buffer {
     private final int BUFFER_SIZE;
     private byte[] data;
     private int pos;
-    private int blockID;
     private boolean isDirty;
 
     /**
@@ -22,7 +21,7 @@ public class Buffer {
         this.BUFFER_SIZE = bufferSize;
         this.data = new byte[BUFFER_SIZE];
         this.isDirty = false;
-        this.blockID = -1;
+        this.pos = -1;
     }
 
 
@@ -33,16 +32,6 @@ public class Buffer {
 
     public int getPos() {
         return pos;
-    }
-
-
-    public int getBlockID() {
-        return blockID;
-    }
-
-
-    public void setBlockID(int id) {
-        this.blockID = id;
     }
 
 
@@ -65,4 +54,27 @@ public class Buffer {
         System.arraycopy(space, 0, this.data, 0, BUFFER_SIZE);
     }
 
+
+    /**
+     * Gets bytes from byte array
+     * 
+     * @param space
+     * @param size
+     * @param pos
+     */
+    public void getBytes(byte[] space, int size, int pos) {
+        System.arraycopy(data, pos, space, 0, size);
+    }
+
+
+    /**
+     * Inserts bytes into byte array
+     * 
+     * @param space
+     * @param size
+     * @param pos
+     */
+    public void insertBytes(byte[] space, int size, int pos) {
+        System.arraycopy(space, 0, data, pos, size);
+    }
 }

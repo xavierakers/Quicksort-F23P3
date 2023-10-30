@@ -1,4 +1,3 @@
-import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
@@ -74,14 +73,14 @@ public class Sort {
      * @param pivotVal
      *            value of the pivot
      * @return the new left index
-     * @throws IOException
+     * @throws Exception 
      */
     public int partition(
         BufferPool bufferPool,
         int left,
         int right,
         short pivotVal)
-        throws IOException {
+        throws Exception {
         // Adjusting for 4 bytes records
         right = (int)(right / 4) * 4;
 
@@ -133,10 +132,10 @@ public class Sort {
      *            index to be swapped, pivot
      * @param index2
      *            index to be swapped, right
-     * @throws IOException
+     * @throws Exception 
      */
     private void swap(BufferPool bufferPool, int index1, int index2)
-        throws IOException {
+        throws Exception {
         index2 = (int)(index2 / 4) * 4;
         index1 = (int)(index1 / 4) * 4;
 

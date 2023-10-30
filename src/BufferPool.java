@@ -13,22 +13,37 @@ import java.io.RandomAccessFile;
  */
 public class BufferPool {
     private final int BUFFER_SIZE;
-    private RandomAccessFile raf;
     private Buffer[] pool;
     private int numBuffers;
+    private RandomAccessFile raf;
     private byte[] taxi;
 
-    public BufferPool(int numBuffers, int blockSize, String filePath) {
+    private int[] cacheHits;
+    private int[] diskReads;
+    private int[] diskWrites;
+
+    public BufferPool(
+        int numBuffers,
+        int blockSize,
+        String filePath,
+        int[] cacheHits,
+        int[] diskReads,
+        int[] diskWrites) {
+
+        this.cacheHits = cacheHits;
+        this.diskReads = diskReads;
+        this.diskWrites = diskWrites;
+
         this.BUFFER_SIZE = blockSize;
+        this.numBuffers = numBuffers;
+        this.taxi = new byte[4];
         try {
-            this.numBuffers = numBuffers;
             this.raf = new RandomAccessFile(filePath, "rw");
-            this.taxi = new byte[BUFFER_SIZE];
-            pool = new Buffer[numBuffers];
+            this.pool = new Buffer[numBuffers];
+
             for (int i = 0; i < numBuffers; i++) {
                 pool[i] = new Buffer(BUFFER_SIZE);
             }
-
         }
         catch (Exception e) {
             System.out.println("error in constructor");
@@ -37,68 +52,80 @@ public class BufferPool {
     }
 
 
-    public void insert(byte[] space, int size, int pos) throws IOException {
+    public void insert(byte[] space, int size, int pos) throws Exception {
         int blockNum = pos / BUFFER_SIZE;
         int relPos = pos - (blockNum * BUFFER_SIZE);
 
         Buffer buff = null;
-        // checking if block is already stored in bufferPool
+        int bufferIndex = numBuffers - 1;
         for (int i = 0; i < numBuffers; i++) {
-            if (pool[i].getBlockID() == blockNum) {
+            if (pos >= pool[i].getPos() && pos < pool[i].getPos() + BUFFER_SIZE
+                && pool[i].getPos() >= 0) {
                 buff = pool[i];
-                break;
+                bufferIndex = i;
+                cacheHits[0]++;
             }
         }
-        // sector not already buffed, get LRU
-        if (buff == null) {
-            buff = pool[numBuffers - 1];
-            flush(numBuffers - 1);
-            buff.setBlockID(blockNum);
-            raf.seek(blockNum * BUFFER_SIZE);
-            raf.read(buff.getData(), 0, BUFFER_SIZE);
-            buff.setBlockID(blockNum);
-            buff.setPos(blockNum * BUFFER_SIZE);
-        }
-        for (int i = numBuffers - 1; i > 0; i--) {
-            pool[i] = pool[i - 1];
-        }
-        pool[0] = buff;
-        System.arraycopy(space, 0, buff.getData(), relPos, size);
+        updateLRU(bufferIndex);
+        buff = pool[0];
         buff.setIsDirty(true);
+        System.arraycopy(space, 0, buff.getData(), relPos, size);
+        // buff.insertBytes(space, size, relPos);
     }
 
 
-    public void getBytes(byte[] space, int size, int pos) throws IOException {
+    public void getBytes(byte[] space, int size, int pos) throws Exception {
+        
         int blockNum = pos / BUFFER_SIZE;
         int relPos = pos - (blockNum * BUFFER_SIZE);
-
+        // finding a possible used buffer
         Buffer buff = null;
-        // checking if block is already stored in buffer
+        int buffIndex = numBuffers - 1;
         for (int i = 0; i < numBuffers; i++) {
-            if (pool[i].getBlockID() == blockNum) {
-                // System.out.println("found buffer");
+            if (pos >= pool[i].getPos() && pos < pool[i].getPos() + BUFFER_SIZE
+                && pool[i].getPos() >= 0) {
+
                 buff = pool[i];
-                break;
+                buffIndex = i;
+                cacheHits[0]++;
+
             }
         }
-        // sector not already buffed, get LRU
-        if (buff == null) {
-            // System.out.println("loading new buffer");
-            buff = pool[numBuffers - 1];
-            flush(numBuffers - 1);
-            buff.setBlockID(blockNum);
-            raf.seek(blockNum * BUFFER_SIZE);
-            raf.read(buff.getData(), 0, BUFFER_SIZE);
-            buff.setBlockID(blockNum);
-            buff.setPos(blockNum * BUFFER_SIZE);
 
+        if (buff == null) {
+            updateLRU(buffIndex);
+            buff = pool[0];
+            buff.setPos(blockNum * BUFFER_SIZE);
+            buff.setIsDirty(false);
+            raf.seek(buff.getPos());
+            raf.read(buff.getData());
+            diskReads[0]++;
+            // raf.read(buff.getData(), buff.getPos(), BUFFER_SIZE);
         }
-        for (int i = numBuffers - 1; i > 0; i--) {
+
+        buff.getBytes(space, size, relPos);
+    }
+
+
+    /**
+     * Moves buffer from the end of the pool to the front
+     * Writes to RAF if is dirty
+     * 
+     * @throws Exception
+     */
+    private void updateLRU(int index) throws Exception {
+        Buffer buff = pool[index];
+        for (int i = index; i > 0; i--) {
             pool[i] = pool[i - 1];
         }
         pool[0] = buff;
-        System.arraycopy(buff.getData(), relPos, space, 0, size);
-        // printBuffers();
+        if (buff != null) {
+            if (buff.isDirty()) {
+                raf.seek(buff.getPos());
+                raf.write(buff.getData());
+                diskWrites[0]++;
+            }
+        }
     }
 
 
@@ -108,18 +135,11 @@ public class BufferPool {
     }
 
 
-    public void flush(int buffNum) throws IOException {
-        if (buffNum >= 0 && pool[buffNum].isDirty()) {
-            raf.seek(pool[buffNum].getPos());
-            raf.write(pool[buffNum].getData());
-        }
-    }
-
-
     public void flushAll() throws IOException {
         for (int i = 0; i < pool.length; i++) {
             raf.seek(pool[i].getPos());
             raf.write(pool[i].getData());
+            diskWrites[0]++;
         }
         raf.close();
     }
@@ -129,9 +149,9 @@ public class BufferPool {
         System.out.println();
         for (int i = 0; i < numBuffers; i++) {
             String str = new String(pool[i].getData());
-            System.out.println("Buffer: " + pool[i].getBlockID());
+            // System.out.println("Buffer: " + i);
+            System.out.println("Buffer: " + pool[i].getPos());
             System.out.println(str);
-
         }
 
     }
