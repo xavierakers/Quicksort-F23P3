@@ -73,23 +73,42 @@ public class Quicksort {
         int[] diskReads = new int[] { 0 };
         int[] diskWrites = new int[] { 0 };
         long startTime = System.currentTimeMillis();
-        if (args == null) {
-            return;
-        }
+
         int numBuffers = Integer.parseInt(args[1]);
-        BufferPool buffPool = new BufferPool(numBuffers, 4096, args[0], cacheHits, diskReads, diskWrites);
+        BufferPool buffPool = new BufferPool(numBuffers, 4096, args[0],
+            cacheHits, diskReads, diskWrites);
+
         Sort sort = new Sort();
         sort.quickSort(buffPool, 0, (buffPool.getSize()) - 1);
         buffPool.flushAll();
+
         long endTime = System.currentTimeMillis();
         long executionTime = endTime - startTime;
         reportMetrics(cacheHits, diskReads, diskWrites, executionTime, args[2]);
     }
 
 
-    public static void reportMetrics(int[] cacheHits, int[] diskReads, int[]diskWrites, long executionTime, String filePath) {
-        try (PrintWriter writer = new PrintWriter(new FileWriter(
-            filePath))) {
+    /**
+     * Prints performance metrics
+     * 
+     * @param cacheHits
+     *            number of cache hits
+     * @param diskReads
+     *            number of disk reads
+     * @param diskWrites
+     *            number of disk writes
+     * @param executionTime
+     *            total time elapsed
+     * @param filePath
+     *            file path to print metrics
+     */
+    public static void reportMetrics(
+        int[] cacheHits,
+        int[] diskReads,
+        int[] diskWrites,
+        long executionTime,
+        String filePath) {
+        try (PrintWriter writer = new PrintWriter(new FileWriter(filePath))) {
             writer.println("Cache Hits: " + cacheHits[0]);
             writer.println("Disk Reads: " + diskReads[0]);
             writer.println("Disk Writes: " + diskWrites[0]);

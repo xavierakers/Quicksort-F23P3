@@ -9,49 +9,80 @@
  * 
  */
 public class Buffer {
-    private final int BUFFER_SIZE;
+    private final int bufferSize;
     private byte[] data;
     private int pos;
     private boolean isDirty;
 
     /**
-     * Default constructor
+     * Constructor
+     * 
+     * @param bufferSize
+     *            The size of the buffer
      */
     public Buffer(int bufferSize) {
-        this.BUFFER_SIZE = bufferSize;
-        this.data = new byte[BUFFER_SIZE];
+        this.bufferSize = bufferSize;
+        this.data = new byte[bufferSize];
         this.isDirty = false;
         this.pos = -1;
     }
 
 
+    /**
+     * Position setter
+     * 
+     * @param pos
+     *            Absolute Position within the data file
+     */
     public void setPos(int pos) {
         this.pos = pos;
     }
 
 
+    /**
+     * Position getting
+     * 
+     * @return Absolute Position within the data file
+     */
     public int getPos() {
         return pos;
     }
 
 
+    /**
+     * @return True if the data has been edited
+     */
     public boolean isDirty() {
         return isDirty;
     }
 
 
+    /**
+     * Setter for is dirty
+     * 
+     * @param isDirty
+     *            True if data has been edited
+     */
     public void setIsDirty(boolean isDirty) {
         this.isDirty = isDirty;
     }
 
 
+    /**
+     * 
+     * @return Reference to the byte array
+     */
     public byte[] getData() {
         return data;
     }
 
 
+    /**
+     * @param space
+     *            Array with data to set
+     */
     public void setData(byte[] space) {
-        System.arraycopy(space, 0, this.data, 0, BUFFER_SIZE);
+        System.arraycopy(space, 0, this.data, 0, bufferSize);
     }
 
 
@@ -59,22 +90,14 @@ public class Buffer {
      * Gets bytes from byte array
      * 
      * @param space
+     *            Array to carry bytes requested
      * @param size
-     * @param pos
+     *            The number of bytes requested
+     * @param off
+     *            The relative position of bytes requested
      */
-    public void getBytes(byte[] space, int size, int pos) {
-        System.arraycopy(data, pos, space, 0, size);
+    public void getBytes(byte[] space, int size, int off) {
+        System.arraycopy(data, off, space, 0, size);
     }
 
-
-    /**
-     * Inserts bytes into byte array
-     * 
-     * @param space
-     * @param size
-     * @param pos
-     */
-    public void insertBytes(byte[] space, int size, int pos) {
-        System.arraycopy(space, 0, data, pos, size);
-    }
 }

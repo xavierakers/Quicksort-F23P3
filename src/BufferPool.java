@@ -12,7 +12,7 @@ import java.io.RandomAccessFile;
  *        Implementing LRU updating
  */
 public class BufferPool {
-    private final int BUFFER_SIZE;
+    private int bufferSize;
     private Buffer[] pool;
     private int numBuffers;
     private RandomAccessFile raf;
@@ -22,88 +22,120 @@ public class BufferPool {
     private int[] diskReads;
     private int[] diskWrites;
 
+    /**
+     * Constructor
+     * 
+     * @param numBuffers
+     *            Number of buffers within the pool
+     * @param blockSize
+     *            Size of each data block/buffer
+     * @param filePath
+     *            Data filename
+     * @param cacheHits
+     *            Stores number of cacheHits
+     * @param diskReads
+     *            Stores number of diskReads
+     * @param diskWrites
+     *            Stores number of diskWrites
+     * @throws Exception
+     */
     public BufferPool(
         int numBuffers,
         int blockSize,
         String filePath,
         int[] cacheHits,
         int[] diskReads,
-        int[] diskWrites) {
+        int[] diskWrites)
+        throws Exception {
 
         this.cacheHits = cacheHits;
         this.diskReads = diskReads;
         this.diskWrites = diskWrites;
-
-        this.BUFFER_SIZE = blockSize;
+        this.bufferSize = blockSize;
         this.numBuffers = numBuffers;
         this.taxi = new byte[4];
-        try {
-            this.raf = new RandomAccessFile(filePath, "rw");
-            this.pool = new Buffer[numBuffers];
+        this.raf = new RandomAccessFile(filePath, "rw");
+        this.pool = new Buffer[numBuffers];
 
-            for (int i = 0; i < numBuffers; i++) {
-                pool[i] = new Buffer(BUFFER_SIZE);
-            }
-        }
-        catch (Exception e) {
-            System.out.println("error in constructor");
-            e.printStackTrace();
+        for (int i = 0; i < numBuffers; i++) {
+            pool[i] = new Buffer(bufferSize);
         }
     }
 
 
+    /**
+     * Insert new bytes into data pool
+     * 
+     * @param space
+     *            Array holding new bytes
+     * @param size
+     *            Number of bytes to insert
+     * @param pos
+     *            Absolute position of bytes to insert
+     * @throws Exception
+     */
     public void insert(byte[] space, int size, int pos) throws Exception {
-        int blockNum = pos / BUFFER_SIZE;
-        int relPos = pos - (blockNum * BUFFER_SIZE);
+        int blockNum = pos / bufferSize;
+        int relPos = pos - (blockNum * bufferSize);
 
+        Buffer buff = findBuffer(pos, blockNum);
+        buff.setIsDirty(true);
+        System.arraycopy(space, 0, buff.getData(), relPos, size);
+    }
+
+
+    /**
+     * Retrieve bytes from the data
+     * 
+     * @param space
+     *            Array to carry requested data
+     * @param size
+     *            Number of bytes requested
+     * @param pos
+     *            Absolute position of bytes requested
+     * @throws Exception
+     */
+    public void getBytes(byte[] space, int size, int pos) throws Exception {
+
+        int blockNum = pos / bufferSize;
+        int relPos = pos - (blockNum * bufferSize);
+        Buffer buff = findBuffer(pos, blockNum);
+        buff.getBytes(space, size, relPos);
+    }
+
+
+    /**
+     * Finds necessary buffer
+     * 
+     * @param pos
+     *            Relative position of data requested
+     * @param blockNum
+     *            Block number data is in
+     * @return Buffer containing data, or LRU Buffer
+     * @throws Exception
+     */
+    public Buffer findBuffer(int pos, int blockNum) throws Exception {
         Buffer buff = null;
         int bufferIndex = numBuffers - 1;
         for (int i = 0; i < numBuffers; i++) {
-            if (pos >= pool[i].getPos() && pos < pool[i].getPos() + BUFFER_SIZE
+            if (pos >= pool[i].getPos() && pos < pool[i].getPos() + bufferSize
                 && pool[i].getPos() >= 0) {
                 buff = pool[i];
                 bufferIndex = i;
                 cacheHits[0]++;
             }
         }
+
         updateLRU(bufferIndex);
-        buff = pool[0];
-        buff.setIsDirty(true);
-        System.arraycopy(space, 0, buff.getData(), relPos, size);
-        // buff.insertBytes(space, size, relPos);
-    }
-
-
-    public void getBytes(byte[] space, int size, int pos) throws Exception {
-        
-        int blockNum = pos / BUFFER_SIZE;
-        int relPos = pos - (blockNum * BUFFER_SIZE);
-        // finding a possible used buffer
-        Buffer buff = null;
-        int buffIndex = numBuffers - 1;
-        for (int i = 0; i < numBuffers; i++) {
-            if (pos >= pool[i].getPos() && pos < pool[i].getPos() + BUFFER_SIZE
-                && pool[i].getPos() >= 0) {
-
-                buff = pool[i];
-                buffIndex = i;
-                cacheHits[0]++;
-
-            }
-        }
-
         if (buff == null) {
-            updateLRU(buffIndex);
             buff = pool[0];
-            buff.setPos(blockNum * BUFFER_SIZE);
+            buff.setPos(blockNum * bufferSize);
             buff.setIsDirty(false);
             raf.seek(buff.getPos());
             raf.read(buff.getData());
             diskReads[0]++;
-            // raf.read(buff.getData(), buff.getPos(), BUFFER_SIZE);
         }
-
-        buff.getBytes(space, size, relPos);
+        return buff;
     }
 
 
@@ -119,7 +151,7 @@ public class BufferPool {
             pool[i] = pool[i - 1];
         }
         pool[0] = buff;
-        if (buff != null) {
+        if (buff != null && index == numBuffers - 1) {
             if (buff.isDirty()) {
                 raf.seek(buff.getPos());
                 raf.write(buff.getData());
@@ -129,27 +161,44 @@ public class BufferPool {
     }
 
 
+    /**
+     * Gets the pivot of the current partition
+     * 
+     * @param pivotIndex
+     *            Index of the pivot
+     * @return array of bytes
+     * @throws Exception
+     */
     public byte[] getPivot(int pivotIndex) throws Exception {
         getBytes(taxi, 4, pivotIndex);
         return taxi;
     }
 
 
+    /**
+     * Writes all dirty blocks back to the RAF
+     * 
+     * @throws IOException
+     */
     public void flushAll() throws IOException {
         for (int i = 0; i < pool.length; i++) {
-            raf.seek(pool[i].getPos());
-            raf.write(pool[i].getData());
-            diskWrites[0]++;
+            if (pool[i].isDirty() && pool[i] != null) {
+                raf.seek(pool[i].getPos());
+                raf.write(pool[i].getData());
+                diskWrites[0]++;
+            }
         }
         raf.close();
     }
 
 
+    /**
+     * Prints contents of the buffers
+     */
     public void printBuffers() {
         System.out.println();
         for (int i = 0; i < numBuffers; i++) {
             String str = new String(pool[i].getData());
-            // System.out.println("Buffer: " + i);
             System.out.println("Buffer: " + pool[i].getPos());
             System.out.println(str);
         }
@@ -157,6 +206,10 @@ public class BufferPool {
     }
 
 
+    /**
+     * @return Absolute size of the data set
+     * @throws IOException
+     */
     public int getSize() throws IOException {
         return (int)raf.length();
     }

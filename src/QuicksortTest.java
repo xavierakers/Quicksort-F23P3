@@ -1,7 +1,7 @@
 import student.TestCase;
 
 /**
- * @author {Your Name Here}
+ * @author Xavier Akers
  * @version {Put Something Here}
  */
 public class QuicksortTest extends TestCase {
@@ -34,18 +34,6 @@ public class QuicksortTest extends TestCase {
         // Quicksort.main(args);
         // In a real test, the following would be assertTrue()
         assertFalse(fileChecker.checkFile("input.txt"));
-    }
-
-
-    /**
-     * Get code coverage of the class declaration.
-     * 
-     * @throws Exception
-     */
-    public void testQInit() throws Exception {
-        Quicksort tree = new Quicksort();
-        assertNotNull(tree);
-        Quicksort.main(null);
     }
 
 
@@ -96,9 +84,9 @@ public class QuicksortTest extends TestCase {
     public void test3Ascii() throws Exception {
         String[] args = new String[3];
         args[0] = "input.txt";
-        args[1] = "10";
+        args[1] = "2";
         args[2] = "statFile.txt";
-        Quicksort.generateFile("input.txt", "10", 'a');
+        Quicksort.generateFile("input.txt", "2", 'a');
         Quicksort.main(args);
         assertTrue(fileChecker.checkFile("input.txt"));
 
@@ -112,7 +100,7 @@ public class QuicksortTest extends TestCase {
      * 
      * @throws Exception
      */
-    public void test3Binary() throws Exception {
+    public void test4Binary() throws Exception {
         String[] args = new String[3];
         args[0] = "input.txt";
         args[1] = "10";
@@ -160,12 +148,85 @@ public class QuicksortTest extends TestCase {
     }
 
 
-    public void testRealBufferPool1() throws Exception {
+    /**
+     * 10 Blocks
+     * 1 Buffers
+     * 
+     * @throws Exception
+     */
+    public void test6Ascii() throws Exception {
         String[] args = new String[3];
         args[0] = "input.txt";
-        args[1] = "3";
+        args[1] = "1";
         args[2] = "statFile.txt";
-        Quicksort.generateFile("input.txt", "2", 'a');
+        Quicksort.generateFile("input.txt", "10", 'a');
+        Quicksort.main(args);
+        assertTrue(fileChecker.checkFile("input.txt"));
+    }
+
+
+    /**
+     * 10 Blocks
+     * 1 Buffers
+     * 
+     * @throws Exception
+     */
+    public void test6Binary() throws Exception {
+        String[] args = new String[3];
+        args[0] = "input.txt";
+        args[1] = "1";
+        args[2] = "statFile.txt";
+        Quicksort.generateFile("input.txt", "10", 'b');
+        Quicksort.main(args);
+        assertTrue(fileChecker.checkFile("input.txt"));
+    }
+
+    /**
+     * 100 Blocks
+     * 10 Buffers
+     * 
+     * @throws Exception
+     */
+    // public void test7Ascii() throws Exception {
+    // String[] args = new String[3];
+    // args[0] = "input.txt";
+    // args[1] = "10";
+    // args[2] = "statFile.txt";
+    // Quicksort.generateFile("input.txt", "100", 'a');
+    // Quicksort.main(args);
+    // assertTrue(fileChecker.checkFile("input.txt"));
+    // }
+
+    /**
+     * 100 Blocks
+     * 10 Buffers
+     * 
+     * @throws Exception
+     */
+    // public void test7Binary() throws Exception {
+    // String[] args = new String[3];
+    // args[0] = "input.txt";
+    // args[1] = "10";
+    // args[2] = "statFile.txt";
+    // Quicksort.generateFile("input.txt", "100", 'b');
+    // Quicksort.main(args);
+    // assertTrue(fileChecker.checkFile("input.txt"));
+    // }
+
+
+    /**
+     * Currently
+     * 2 Blocks
+     * 1 Buffer
+     * 
+     * @throws Exception
+     */
+    public void testMiscTesting() throws Exception {
+        String[] args = new String[3];
+        args[0] = "input.txt";
+        args[1] = "10";
+        args[2] = "statFile.txt";
+        Quicksort.generateFile("input.txt", "1000", 'a');
         Quicksort.main(args);
         assertTrue(fileChecker.checkFile("input.txt"));
     }
