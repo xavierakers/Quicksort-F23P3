@@ -126,7 +126,7 @@ public class BufferPool {
             }
         }
 
-        updateLRU(bufferIndex);
+        updateLRU(bufferIndex, blockNum * bufferSize);
         if (buff == null) {
             buff = pool[0];
             buff.setPos(blockNum * bufferSize);
@@ -143,15 +143,20 @@ public class BufferPool {
      * Moves buffer from the end of the pool to the front
      * Writes to RAF if is dirty
      * 
+     * @param index
+     *            Buffer index
+     * @param pos
+     *            New position needed in the data file
      * @throws Exception
      */
-    private void updateLRU(int index) throws Exception {
+    private void updateLRU(int index, int pos) throws Exception {
         Buffer buff = pool[index];
         for (int i = index; i > 0; i--) {
             pool[i] = pool[i - 1];
         }
+
         pool[0] = buff;
-        if (buff != null && index == numBuffers - 1) {
+        if (buff != null && index == numBuffers - 1 && buff.getPos() != pos) {
             if (buff.isDirty()) {
                 raf.seek(buff.getPos());
                 raf.write(buff.getData());

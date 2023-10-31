@@ -34,11 +34,17 @@ public class Sort {
         byte[] pivotVal = bufferPool.getPivot(pivotindex);
 
         short key = getKey(pivotVal);
-        swap(bufferPool, pivotindex, right);
+
+        // swap(bufferPool, pivotindex, right);
+
+        bufferPool.getBytes(swap1, 4, (int)(right / 4) * 4);
+        swap(bufferPool, pivotindex, right, pivotVal, swap1);
 
         int newPivot = partition(bufferPool, left, right - 4, key);
-        swap(bufferPool, newPivot, right);
 
+        // swap(bufferPool, newPivot, right);
+        bufferPool.getBytes(swap1, 4, newPivot);
+        swap(bufferPool, newPivot, right, swap1, pivotVal);
         if ((newPivot - left) > 1) {
             quickSort(bufferPool, left, newPivot - 4);
         }
@@ -102,7 +108,8 @@ public class Sort {
             }
 
             if (right > left) {
-                swap(bufferPool, left, right);
+                // swap(bufferPool, left, right);
+                swap(bufferPool, left, right, swap1, swap2);
             }
         }
 
@@ -135,7 +142,12 @@ public class Sort {
      *            index to be swapped, right
      * @throws Exception
      */
-    private void swap(BufferPool bufferPool, int index1, int index2)
+    private void swap(
+        BufferPool bufferPool,
+        int index1,
+        int index2,
+        byte[] index1Val,
+        byte[] index2Val)
         throws Exception {
         index2 = (int)(index2 / 4) * 4;
         index1 = (int)(index1 / 4) * 4;
@@ -143,14 +155,9 @@ public class Sort {
         if (index1 >= 0 && index1 < bufferPool.getSize() && index2 >= 0
             && index2 < bufferPool.getSize()) {
 
-            byte[] temp = new byte[4];
-            bufferPool.getBytes(temp, 4, index1);
-            bufferPool.getBytes(space, 4, index2);
-            bufferPool.insert(space, 4, index1);
-            bufferPool.insert(temp, 4, index2);
+            bufferPool.insert(index2Val, 4, index1);
+            bufferPool.insert(index1Val, 4, index2);
 
         }
-
     }
-
 }
