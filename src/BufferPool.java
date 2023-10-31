@@ -4,7 +4,7 @@ import java.io.RandomAccessFile;
 /**
  * @author Xavier AKers
  * 
- * @version Last Updated
+ * @version Last Updated 10-31-2023
  * 
  * @since 10-16-2023
  * 
@@ -160,6 +160,7 @@ public class BufferPool {
             if (buff.isDirty()) {
                 raf.seek(buff.getPos());
                 raf.write(buff.getData());
+                buff.setIsDirty(false);
                 diskWrites[0]++;
             }
         }

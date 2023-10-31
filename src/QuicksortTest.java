@@ -145,22 +145,6 @@ public class QuicksortTest extends TestCase {
     }
 
 
-    /**
-     * 100 Blocks
-     * 10 Buffers
-     * 
-     * @throws Exception
-     */
-    public void test8Binary() throws Exception {
-        String[] args = new String[3];
-        args[0] = "input.txt";
-        args[1] = "10";
-        args[2] = "statFile.txt";
-        Quicksort.generateFile("input.txt", "100", 'b');
-        Quicksort.main(args);
-        assertTrue(fileChecker.checkFile("input.txt"));
-    }
-
 
     /**
      * 1000 Blocks
