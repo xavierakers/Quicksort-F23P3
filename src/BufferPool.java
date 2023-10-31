@@ -95,12 +95,13 @@ public class BufferPool {
      *            Absolute position of bytes requested
      * @throws Exception
      */
-    public void getBytes(byte[] space, int size, int pos) throws Exception {
+    public byte[] getBytes(byte[] space, int size, int pos) throws Exception {
 
         int blockNum = pos / bufferSize;
         int relPos = pos - (blockNum * bufferSize);
         Buffer buff = findBuffer(pos, blockNum);
         buff.getBytes(space, size, relPos);
+        return space;
     }
 
 

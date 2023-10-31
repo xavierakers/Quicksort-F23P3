@@ -1,4 +1,4 @@
-Cache Hits: 39298
-Disk Reads: 1
-Disk Writes: 1
-Execution Time: 52 milliseconds
+Cache Hits: 3761743
+Disk Reads: 599
+Disk Writes: 599
+Execution Time: 1559 milliseconds
