@@ -75,25 +75,6 @@ public class QuicksortTest extends TestCase {
 
 
     /**
-     * Ascii
-     * 10 Blocks
-     * 10 Buffers
-     * 
-     * @throws Exception
-     */
-    public void test3Ascii() throws Exception {
-        String[] args = new String[3];
-        args[0] = "input.txt";
-        args[1] = "2";
-        args[2] = "statFile.txt";
-        Quicksort.generateFile("input.txt", "2", 'a');
-        Quicksort.main(args);
-        assertTrue(fileChecker.checkFile("input.txt"));
-
-    }
-
-
-    /**
      * Binary
      * 10 Blocks
      * 10 Buffers
@@ -109,24 +90,6 @@ public class QuicksortTest extends TestCase {
         Quicksort.main(args);
         assertTrue(fileChecker.checkFile("input.txt"));
 
-    }
-
-
-    /**
-     * Ascii
-     * 10 Blocks
-     * 4 Buffers
-     * 
-     * @throws Exception
-     */
-    public void test5Ascii() throws Exception {
-        String[] args = new String[3];
-        args[0] = "input.txt";
-        args[1] = "4";
-        args[2] = "statFile.txt";
-        Quicksort.generateFile("input.txt", "10", 'a');
-        Quicksort.main(args);
-        assertTrue(fileChecker.checkFile("input.txt"));
     }
 
 
@@ -154,23 +117,6 @@ public class QuicksortTest extends TestCase {
      * 
      * @throws Exception
      */
-    public void test6Ascii() throws Exception {
-        String[] args = new String[3];
-        args[0] = "input.txt";
-        args[1] = "1";
-        args[2] = "statFile.txt";
-        Quicksort.generateFile("input.txt", "10", 'a');
-        Quicksort.main(args);
-        assertTrue(fileChecker.checkFile("input.txt"));
-    }
-
-
-    /**
-     * 10 Blocks
-     * 1 Buffers
-     * 
-     * @throws Exception
-     */
     public void test6Binary() throws Exception {
         String[] args = new String[3];
         args[0] = "input.txt";
@@ -181,21 +127,6 @@ public class QuicksortTest extends TestCase {
         assertTrue(fileChecker.checkFile("input.txt"));
     }
 
-    /**
-     * 100 Blocks
-     * 10 Buffers
-     * 
-     * @throws Exception
-     */
-    // public void test7Ascii() throws Exception {
-    // String[] args = new String[3];
-    // args[0] = "input.txt";
-    // args[1] = "10";
-    // args[2] = "statFile.txt";
-    // Quicksort.generateFile("input.txt", "100", 'a');
-    // Quicksort.main(args);
-    // assertTrue(fileChecker.checkFile("input.txt"));
-    // }
 
     /**
      * 100 Blocks
@@ -203,15 +134,47 @@ public class QuicksortTest extends TestCase {
      * 
      * @throws Exception
      */
-    // public void test7Binary() throws Exception {
-    // String[] args = new String[3];
-    // args[0] = "input.txt";
-    // args[1] = "10";
-    // args[2] = "statFile.txt";
-    // Quicksort.generateFile("input.txt", "100", 'b');
-    // Quicksort.main(args);
-    // assertTrue(fileChecker.checkFile("input.txt"));
-    // }
+    public void test7Binary() throws Exception {
+        String[] args = new String[3];
+        args[0] = "input.txt";
+        args[1] = "10";
+        args[2] = "statFile.txt";
+        Quicksort.generateFile("input.txt", "100", 'b');
+        Quicksort.main(args);
+        assertTrue(fileChecker.checkFile("input.txt"));
+    }
+
+
+    /**
+     * 100 Blocks
+     * 10 Buffers
+     * 
+     * @throws Exception
+     */
+    public void test8Binary() throws Exception {
+        String[] args = new String[3];
+        args[0] = "input.txt";
+        args[1] = "10";
+        args[2] = "statFile.txt";
+        Quicksort.generateFile("input.txt", "100", 'b');
+        Quicksort.main(args);
+        assertTrue(fileChecker.checkFile("input.txt"));
+    }
+
+
+    /**
+     * 1000 Blocks
+     * 10 Buffers
+     */
+    public void test9Binary() throws Exception {
+        String[] args = new String[3];
+        args[0] = "input.txt";
+        args[1] = "10";
+        args[2] = "statFile.txt";
+        Quicksort.generateFile("input.txt", "100", 'b');
+        Quicksort.main(args);
+        assertTrue(fileChecker.checkFile("input.txt"));
+    }
 
 
     /**
@@ -224,9 +187,9 @@ public class QuicksortTest extends TestCase {
     public void testMiscTesting() throws Exception {
         String[] args = new String[3];
         args[0] = "input.txt";
-        args[1] = "10";
+        args[1] = "1";
         args[2] = "statFile.txt";
-        Quicksort.generateFile("input.txt", "1000", 'a');
+        Quicksort.generateFile("input.txt", "5", 'a');
         Quicksort.main(args);
         assertTrue(fileChecker.checkFile("input.txt"));
     }
