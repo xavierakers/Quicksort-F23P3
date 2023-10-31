@@ -1,4 +1,3 @@
-import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
@@ -14,6 +13,8 @@ import java.nio.ByteBuffer;
  */
 public class Sort {
     private byte[] space = new byte[4];
+    private byte[] swap1 = new byte[4];
+    private byte[] swap2 = new byte[4];
 
     /**
      * Recursive QuickSort Method
@@ -28,7 +29,7 @@ public class Sort {
      */
     public void quickSort(BufferPool bufferPool, int left, int right)
         throws Exception {
-        
+
         int pivotindex = findPivot(left, right);
         byte[] pivotVal = bufferPool.getPivot(pivotindex);
 
@@ -74,30 +75,29 @@ public class Sort {
      * @param pivotVal
      *            value of the pivot
      * @return the new left index
-     * @throws IOException
+     * @throws Exception
      */
     public int partition(
         BufferPool bufferPool,
         int left,
         int right,
         short pivotVal)
-        throws IOException {
+        throws Exception {
         // Adjusting for 4 bytes records
         right = (int)(right / 4) * 4;
 
         while (left <= right) {
-
-            bufferPool.getBytes(space, 4, left);
-            while (getKey(space) < pivotVal) {
+            bufferPool.getBytes(swap1, 4, left);
+            while (getKey(swap1) < pivotVal) {
                 left += 4;
-                bufferPool.getBytes(space, 4, left);
+                bufferPool.getBytes(swap1, 4, left);
             }
 
-            bufferPool.getBytes(space, 4, right);
-            while ((right >= left) && getKey(space) >= pivotVal) {
+            bufferPool.getBytes(swap2, 4, right);
+            while ((right >= left) && getKey(swap2) >= pivotVal) {
                 right -= 4;
                 if (right >= 0) {
-                    bufferPool.getBytes(space, 4, right);
+                    bufferPool.getBytes(swap2, 4, right);
                 }
             }
 
@@ -133,21 +133,24 @@ public class Sort {
      *            index to be swapped, pivot
      * @param index2
      *            index to be swapped, right
-     * @throws IOException
+     * @throws Exception
      */
     private void swap(BufferPool bufferPool, int index1, int index2)
-        throws IOException {
+        throws Exception {
         index2 = (int)(index2 / 4) * 4;
         index1 = (int)(index1 / 4) * 4;
 
         if (index1 >= 0 && index1 < bufferPool.getSize() && index2 >= 0
             && index2 < bufferPool.getSize()) {
+
             byte[] temp = new byte[4];
             bufferPool.getBytes(temp, 4, index1);
             bufferPool.getBytes(space, 4, index2);
             bufferPool.insert(space, 4, index1);
             bufferPool.insert(temp, 4, index2);
+
         }
+
     }
 
 }
