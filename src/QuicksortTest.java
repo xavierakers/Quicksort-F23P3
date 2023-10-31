@@ -171,9 +171,9 @@ public class QuicksortTest extends TestCase {
     public void testMiscTesting() throws Exception {
         String[] args = new String[3];
         args[0] = "input.txt";
-        args[1] = "1";
+        args[1] = "3";
         args[2] = "statFile.txt";
-        Quicksort.generateFile("input.txt", "5", 'a');
+        Quicksort.generateFile("input.txt", "4", 'a');
         Quicksort.main(args);
         assertTrue(fileChecker.checkFile("input.txt"));
     }

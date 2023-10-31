@@ -117,6 +117,7 @@ public class BufferPool {
     public Buffer findBuffer(int pos, int blockNum) throws Exception {
         Buffer buff = null;
         int bufferIndex = numBuffers - 1;
+        // finding if a buffer exists
         for (int i = 0; i < numBuffers; i++) {
             if (pos >= pool[i].getPos() && pos < pool[i].getPos() + bufferSize
                 && pool[i].getPos() >= 0) {
@@ -128,6 +129,8 @@ public class BufferPool {
 
         updateLRU(bufferIndex, blockNum * bufferSize);
         if (buff == null) {
+//            System.out.println("reading in data");
+//            System.out.println(pos);
             buff = pool[0];
             buff.setPos(blockNum * bufferSize);
             buff.setIsDirty(false);
