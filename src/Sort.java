@@ -41,6 +41,9 @@ public class Sort {
         swap(bufferPool, pivotindex, right, pivotVal, swap1);
 
         int newPivot = partition(bufferPool, left, right - 4, key);
+        if (newPivot == right) {
+
+        }
 
         // swap(bufferPool, newPivot, right);
         bufferPool.getBytes(swap1, 4, newPivot);
@@ -51,6 +54,7 @@ public class Sort {
         if ((right - newPivot) > 1) {
             quickSort(bufferPool, newPivot + 4, right);
         }
+
     }
 
 
@@ -91,6 +95,10 @@ public class Sort {
         throws Exception {
         // Adjusting for 4 bytes records
         right = (int)(right / 4) * 4;
+// bufferPool.getBytes(swap1, 4, left);
+// if (pivotVal == getKey(swap1)) {
+// return right;
+// }
 
         while (left <= right) {
             bufferPool.getBytes(swap1, 4, left);
@@ -155,8 +163,8 @@ public class Sort {
         if (index1 >= 0 && index1 < bufferPool.getSize() && index2 >= 0
             && index2 < bufferPool.getSize()) {
 
-            bufferPool.insert(index2Val, 4, index1);
             bufferPool.insert(index1Val, 4, index2);
+            bufferPool.insert(index2Val, 4, index1);
 
         }
     }
