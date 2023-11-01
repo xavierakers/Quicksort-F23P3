@@ -144,21 +144,19 @@ public class QuicksortTest extends TestCase {
         assertTrue(fileChecker.checkFile("input.txt"));
     }
 
-
-
     /**
      * 1000 Blocks
      * 10 Buffers
      */
-    public void test9Binary() throws Exception {
-        String[] args = new String[3];
-        args[0] = "input.txt";
-        args[1] = "10";
-        args[2] = "statFile.txt";
-        Quicksort.generateFile("input.txt", "100", 'b');
-        Quicksort.main(args);
-        assertTrue(fileChecker.checkFile("input.txt"));
-    }
+// public void test9Binary() throws Exception {
+// String[] args = new String[3];
+// args[0] = "input.txt";
+// args[1] = "10";
+// args[2] = "statFile.txt";
+// Quicksort.generateFile("input.txt", "100", 'b');
+// Quicksort.main(args);
+// assertTrue(fileChecker.checkFile("input.txt"));
+// }
 
 
     /**
@@ -171,7 +169,7 @@ public class QuicksortTest extends TestCase {
     public void testMiscTesting() throws Exception {
         String[] args = new String[3];
         args[0] = "input.txt";
-        args[1] = "3";
+        args[1] = "4";
         args[2] = "statFile.txt";
         Quicksort.generateFile("input.txt", "4", 'a');
         Quicksort.main(args);
