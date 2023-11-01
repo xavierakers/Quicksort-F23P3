@@ -29,8 +29,9 @@ public class Sort {
      */
     public void quickSort(BufferPool bufferPool, int left, int right)
         throws Exception {
+        // right - left < 40
         if (right - left < 40) {
-            insertionSort(bufferPool, left, right);
+            insort(bufferPool, left, right);
         }
         else {
             int pivotindex = findPivot(left, right);
@@ -38,16 +39,14 @@ public class Sort {
 
             short key = getKey(pivotVal);
 
-            // swap(bufferPool, pivotindex, right);
-
             bufferPool.getBytes(swap1, 4, (int)(right / 4) * 4);
             swap(bufferPool, pivotindex, right, pivotVal, swap1);
 
             int newPivot = partition(bufferPool, left, right - 4, key);
 
-            // swap(bufferPool, newPivot, right);
             bufferPool.getBytes(swap1, 4, newPivot);
             swap(bufferPool, newPivot, right, swap1, pivotVal);
+
             if ((newPivot - left) > 1) {
                 quickSort(bufferPool, left, newPivot - 4);
             }
@@ -93,7 +92,6 @@ public class Sort {
         int right,
         short pivotVal)
         throws Exception {
-        // Adjusting for 4 bytes records
         right = (int)(right / 4) * 4;
 
         while (left <= right) {
@@ -110,31 +108,36 @@ public class Sort {
                     bufferPool.getBytes(swap2, 4, right);
                 }
             }
-
             if (right > left) {
-                // swap(bufferPool, left, right);
                 swap(bufferPool, left, right, swap1, swap2);
             }
         }
-
         return left;
     }
 
 
-    public void insertionSort(BufferPool bufferPool, int left, int right)
+    public void insort(BufferPool bufferPool, int left, int right)
         throws Exception {
+
         for (int i = left + 4; i <= right; i += 4) {
-            byte[] currentBytes = bufferPool.getBytes(swap1, 4, i);
-            short current = getKey(currentBytes);
+            int j = i;
+            bufferPool.getBytes(space, 4, j);
+            short key = getKey(space);
+            while (j > left) {
+                bufferPool.getBytes(swap2, 4, j - 4);
+                short prevKey = getKey(swap2);
+                if (key < prevKey) {
+                    swap(bufferPool, j, j - 4, space, swap2);
+                    j -= 4;
 
-            int j = i - 4;
-
-            while (j >= left && current < getKey(bufferPool.getBytes(swap1, 4,
-                j))) {
-                bufferPool.insert(bufferPool.getBytes(swap1, 4, j), 4, j + 4);
-                j -= 4;
+                }
+                else if (key == prevKey) {
+                    break;
+                }
+                else {
+                    break;
+                }
             }
-            bufferPool.insert(currentBytes, 4, j + 4);
         }
     }
 
@@ -179,6 +182,22 @@ public class Sort {
 
             bufferPool.insert(index1Val, 4, index2);
             bufferPool.insert(index2Val, 4, index1);
+
+        }
+    }
+
+
+    private void swap(BufferPool bufferPool, int index1, int index2)
+        throws Exception {
+        index2 = (int)(index2 / 4) * 4;
+        index1 = (int)(index1 / 4) * 4;
+
+        if (index1 >= 0 && index1 < bufferPool.getSize() && index2 >= 0
+            && index2 < bufferPool.getSize()) {
+            bufferPool.getBytes(swap1, 4, index1);
+            bufferPool.getBytes(swap2, 4, index2);
+            bufferPool.insert(swap1, 4, index2);
+            bufferPool.insert(swap2, 4, index1);
 
         }
     }

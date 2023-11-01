@@ -95,13 +95,13 @@ public class BufferPool {
      *            Absolute position of bytes requested
      * @throws Exception
      */
-    public byte[] getBytes(byte[] space, int size, int pos) throws Exception {
-
+    public void getBytes(byte[] space, int size, int pos) throws Exception {
         int blockNum = pos / bufferSize;
         int relPos = pos - (blockNum * bufferSize);
         Buffer buff = findBuffer(pos, blockNum);
-        buff.getBytes(space, size, relPos);
-        return space;
+        System.arraycopy(buff.getData(), relPos, space, 0, size);
+// buff.getBytes(space, size, relPos);
+//        return space;
     }
 
 
@@ -130,8 +130,6 @@ public class BufferPool {
 
         updateLRU(bufferIndex, blockNum * bufferSize);
         if (buff == null) {
-//            System.out.println("reading in data");
-//            System.out.println(pos);
             buff = pool[0];
             buff.setPos(blockNum * bufferSize);
             buff.setIsDirty(false);
