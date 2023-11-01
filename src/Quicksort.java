@@ -79,7 +79,7 @@ public class Quicksort {
             cacheHits, diskReads, diskWrites);
 
         Sort sort = new Sort();
-        sort.quickSort(buffPool, 0, (buffPool.getSize()) - 4);
+        sort.quicksort(buffPool, 0, (buffPool.getSize()) - 4);
         buffPool.flushAll();
 
         long endTime = System.currentTimeMillis();

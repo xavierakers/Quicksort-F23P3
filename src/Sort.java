@@ -57,6 +57,46 @@ public class Sort {
     }
 
 
+    public void quicksort(BufferPool bufferPool, int low, int high)
+        throws Exception {
+        int[] pivotIndices = partition(bufferPool, low, high);
+        quicksort(bufferPool, low, pivotIndices[0] - 4);
+        quicksort(bufferPool, pivotIndices[1] + 4, high);
+    }
+
+
+    public int[] partition(BufferPool bufferPool, int low, int high)
+        throws Exception {
+        bufferPool.getBytes(space, 4, low);
+        System.out.println((char) space[1]);
+        short pivot = getKey(space);
+        int lt = low;
+        int gt = high;
+        int i = low;
+
+        while (i <= gt) {
+            bufferPool.getBytes(swap1, 4, i);
+            if (getKey(swap1) < pivot) {
+                bufferPool.getBytes(swap2, 4, lt);
+                swap(bufferPool, i, lt, swap1, swap2);
+                i += 4;
+                lt += 4;
+            }
+            else if (getKey(swap1) > pivot) {
+                bufferPool.getBytes(swap2, 4, gt);
+                swap(bufferPool, i, gt, swap1, swap2);
+                gt -= 4;
+            }
+            else {
+                i += 4;
+            }
+
+        }
+
+        return new int[] { lt, gt };
+    }
+
+
     /**
      * Finds the pivot of the bufferedStorage
      * Adjusted for 4 bytes records
@@ -92,8 +132,13 @@ public class Sort {
         int right,
         short pivotVal)
         throws Exception {
+
         right = (int)(right / 4) * 4;
 
+        bufferPool.getBytes(swap1, 4, left);
+        if (pivotVal == getKey(swap1)) {
+            return right;
+        }
         while (left <= right) {
             bufferPool.getBytes(swap1, 4, left);
             while (getKey(swap1) < pivotVal) {
