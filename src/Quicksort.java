@@ -1,6 +1,6 @@
 
 /**
- * {Project Description Here}
+ * A somewhat speedy quicksort
  */
 
 import java.io.FileWriter;
@@ -11,7 +11,9 @@ import java.io.PrintWriter;
  * The class containing the main method.
  *
  * @author Xavier Akers
- * @version Last Updated 2023-10-13
+ * @author Zoe Hite
+ * 
+ * @version Last Updated 11-1-2023
  */
 
 // On my honor:
@@ -69,21 +71,20 @@ public class Quicksort {
      * @throws Exception
      */
     public static void main(String[] args) throws Exception {
+
         int[] cacheHits = new int[] { 0 };
         int[] diskReads = new int[] { 0 };
         int[] diskWrites = new int[] { 0 };
+        long startTime = System.currentTimeMillis();
 
-        int numBuffers = Integer.parseInt(args[1]);
-        BufferPool buffPool = new BufferPool(numBuffers, 16, args[0], cacheHits,
-            diskReads, diskWrites);
+        BufferPool buffPool = new BufferPool(Integer.parseInt(args[1]), 4096,
+            args[0], cacheHits, diskReads, diskWrites);
 
         Sort sort = new Sort();
-
-        long startTime = System.currentTimeMillis();
         sort.quickSort(buffPool, 0, (buffPool.getSize()) - 4);
         buffPool.flushAll();
-        long endTime = System.currentTimeMillis();
 
+        long endTime = System.currentTimeMillis();
         long executionTime = endTime - startTime;
         reportMetrics(cacheHits, diskReads, diskWrites, executionTime, args[2]);
     }

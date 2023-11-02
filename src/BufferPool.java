@@ -2,9 +2,10 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 
 /**
- * @author Xavier AKers
+ * @author Xavier Akers
+ * @author Zoe Hite
  * 
- * @version Last Updated 10-31-2023
+ * @version Last Updated 11-1-2023
  * 
  * @since 10-16-2023
  * 
@@ -12,18 +13,25 @@ import java.io.RandomAccessFile;
  *        Implementing LRU updating
  */
 public class BufferPool {
+    // The size of the buffers/blocks
     private int bufferSize;
+    // The array of Buffers
     private Buffer[] pool;
+    // The number of Buffers
     private int numBuffers;
+    // Access to the data file
     private RandomAccessFile raf;
+    // Number of access to the buffers
+    private int[] cacheHits;
+    // Numbers of disk reads
+    private int[] diskReads;
+    // Number of disk Writes
+    private int[] diskWrites;
+    // Used to carry bytes around
     private byte[] taxi;
 
-    private int[] cacheHits;
-    private int[] diskReads;
-    private int[] diskWrites;
-
     /**
-     * Constructor
+     * Bufferpool Constructor
      * 
      * @param numBuffers
      *            Number of buffers within the pool
@@ -56,7 +64,7 @@ public class BufferPool {
         this.taxi = new byte[4];
         this.raf = new RandomAccessFile(filePath, "rw");
         this.pool = new Buffer[numBuffers];
-
+        // Initializing the Buffers in the array
         for (int i = 0; i < numBuffers; i++) {
             pool[i] = new Buffer(bufferSize);
         }
@@ -75,9 +83,11 @@ public class BufferPool {
      * @throws Exception
      */
     public void insert(byte[] space, int size, int pos) throws Exception {
+        // Finding the respective block
         int blockNum = pos / bufferSize;
+        // Finding the position within the block
         int relPos = pos - (blockNum * bufferSize);
-
+        // Buffer available to use
         Buffer buff = findBuffer(pos, blockNum);
         buff.setIsDirty(true);
         System.arraycopy(space, 0, buff.getData(), relPos, size);
@@ -93,15 +103,16 @@ public class BufferPool {
      *            Number of bytes requested
      * @param pos
      *            Absolute position of bytes requested
-     * @return
      * @throws Exception
      */
-    public byte[] getBytes(byte[] space, int size, int pos) throws Exception {
+    public void getBytes(byte[] space, int size, int pos) throws Exception {
+        // Finding the respective block
         int blockNum = pos / bufferSize;
+        // Finding the position within the block
         int relPos = pos - (blockNum * bufferSize);
+        // Buffer available to use
         Buffer buff = findBuffer(pos, blockNum);
         System.arraycopy(buff.getData(), relPos, space, 0, size);
-        return space;
     }
 
 
@@ -118,18 +129,20 @@ public class BufferPool {
     public Buffer findBuffer(int pos, int blockNum) throws Exception {
         Buffer buff = null;
         int bufferIndex = numBuffers - 1;
-        // finding if a buffer exists
+        // Attempting to find a buffer that exists
+        // If position is within the range
         for (int i = 0; i < numBuffers; i++) {
             if (pos >= pool[i].getPos() && pos < pool[i].getPos() + bufferSize
                 && pool[i].getPos() >= 0) {
                 buff = pool[i];
                 bufferIndex = i;
                 cacheHits[0]++;
-                break;
             }
         }
-
+        // Updating list by moving blockIndex to the front
         updateLRU(bufferIndex, blockNum * bufferSize);
+
+        // If we did not find a buffer with our data loaded
         if (buff == null) {
             buff = pool[0];
             buff.setPos(blockNum * bufferSize);
@@ -154,12 +167,17 @@ public class BufferPool {
      */
     private void updateLRU(int index, int pos) throws Exception {
         Buffer buff = pool[index];
+        // Grab buffer at given index, move all buffers infront of that buffer
+        // down one index
         for (int i = index; i > 0; i--) {
             pool[i] = pool[i - 1];
         }
 
+        // replace the first buffer
         pool[0] = buff;
+        // if buffer exists and does not contain the block we want
         if (buff != null && buff.getPos() != pos) {
+            // if buffer is dirty
             if (buff.isDirty()) {
                 raf.seek(buff.getPos());
                 raf.write(buff.getData());
@@ -186,32 +204,21 @@ public class BufferPool {
 
     /**
      * Writes all dirty blocks back to the RAF
+     * Close RAF
      * 
      * @throws IOException
      */
     public void flushAll() throws IOException {
+        // iterate through all the buffers
         for (int i = 0; i < pool.length; i++) {
-            if (pool[i].isDirty()) {
+            // if the buffer has been edited
+            if (pool[i].isDirty() && pool[i] != null) {
                 raf.seek(pool[i].getPos());
                 raf.write(pool[i].getData());
                 diskWrites[0]++;
             }
         }
         raf.close();
-    }
-
-
-    /**
-     * Prints contents of the buffers
-     */
-    public void printBuffers() {
-        System.out.println();
-        for (int i = 0; i < numBuffers; i++) {
-            String str = new String(pool[i].getData());
-            System.out.println("Buffer: " + pool[i].getPos());
-            System.out.println(str);
-        }
-
     }
 
 

@@ -1,5 +1,6 @@
 /**
  * @author Xavier Akers
+ * @author Zoe Hite
  * 
  * @version Last Updated 10-19-2023
  * 

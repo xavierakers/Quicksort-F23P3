@@ -1,3 +1,4 @@
+import java.io.FileNotFoundException;
 import java.io.RandomAccessFile;
 
 /**
@@ -7,8 +8,6 @@ import java.io.RandomAccessFile;
  * 
  * @since 10-16-2023
  * 
- *        BufferPool implementing message-passing interface
- *        Implementing LRU
  */
 public class StubbedBufferPool {
 
@@ -26,18 +25,14 @@ public class StubbedBufferPool {
      *            in this scenario, it is constant 4096
      * @param filePath
      *            input data file
+     * @throws FileNotFoundException
      */
-    public StubbedBufferPool(int numBuffers, int blockSize, String filePath) {
-        try {
-            raf = new RandomAccessFile(filePath, "rw");
-            stubbedArray = new byte[(int)raf.length()];
-            raf.readFully(stubbedArray);
-        }
-        catch (Exception e) {
-            System.out.println("error in constrcutor");
-            e.printStackTrace();
-        }
-        
+    public StubbedBufferPool(int numBuffers, int blockSize, String filePath)
+        throws Exception {
+        raf = new RandomAccessFile(filePath, "rw");
+        stubbedArray = new byte[(int)raf.length()];
+        raf.readFully(stubbedArray);
+
         this.taxi = new byte[4];
     }
 
@@ -53,15 +48,11 @@ public class StubbedBufferPool {
      *            where to insert data in buffered storage
      */
     public void insert(byte[] space, int size, int pos) {
-        try {
-            if (pos >= 0 && size > 0 && pos + size <= stubbedArray.length) {
-                System.arraycopy(space, 0, stubbedArray, pos, size);
-                return;
-            }
+        if (pos >= 0 && size > 0 && pos + size <= stubbedArray.length) {
+            System.arraycopy(space, 0, stubbedArray, pos, size);
+            return;
         }
-        catch (Exception e) {
-            System.out.println("error in insert");
-        }
+
     }
 
 
@@ -76,16 +67,10 @@ public class StubbedBufferPool {
      *            where to get data in buffered storage
      */
     public void getBytes(byte[] space, int size, int pos) {
-        try {
-            if (pos >= 0 && size > 0 && pos + size <= stubbedArray.length) {
-                System.arraycopy(stubbedArray, pos, space, 0, size);
-                return;
-            }
+        if (pos >= 0 && size > 0 && pos + size <= stubbedArray.length) {
+            System.arraycopy(stubbedArray, pos, space, 0, size);
+            return;
         }
-        catch (Exception e) {
-            System.out.println("error in getBytes");
-        }
-
     }
 
 
@@ -124,16 +109,11 @@ public class StubbedBufferPool {
     /**
      * Writes modified contents of the bufferPool back to the disk
      */
-    public void flush() {
-        System.out.println("Flushing");
-        try {
-            raf.seek(0);
-            raf.write(stubbedArray);
-            raf.close();
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
+    public void flush() throws Exception {
+        raf.seek(0);
+        raf.write(stubbedArray);
+        raf.close();
+
     }
 
 }
