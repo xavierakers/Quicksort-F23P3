@@ -93,15 +93,15 @@ public class BufferPool {
      *            Number of bytes requested
      * @param pos
      *            Absolute position of bytes requested
+     * @return
      * @throws Exception
      */
-    public void getBytes(byte[] space, int size, int pos) throws Exception {
+    public byte[] getBytes(byte[] space, int size, int pos) throws Exception {
         int blockNum = pos / bufferSize;
         int relPos = pos - (blockNum * bufferSize);
         Buffer buff = findBuffer(pos, blockNum);
         System.arraycopy(buff.getData(), relPos, space, 0, size);
-// buff.getBytes(space, size, relPos);
-//        return space;
+        return space;
     }
 
 
@@ -125,6 +125,7 @@ public class BufferPool {
                 buff = pool[i];
                 bufferIndex = i;
                 cacheHits[0]++;
+                break;
             }
         }
 
@@ -158,7 +159,7 @@ public class BufferPool {
         }
 
         pool[0] = buff;
-        if (buff != null && index == numBuffers - 1 && buff.getPos() != pos) {
+        if (buff != null && buff.getPos() != pos) {
             if (buff.isDirty()) {
                 raf.seek(buff.getPos());
                 raf.write(buff.getData());
@@ -190,7 +191,7 @@ public class BufferPool {
      */
     public void flushAll() throws IOException {
         for (int i = 0; i < pool.length; i++) {
-            if (pool[i].isDirty() && pool[i] != null) {
+            if (pool[i].isDirty()) {
                 raf.seek(pool[i].getPos());
                 raf.write(pool[i].getData());
                 diskWrites[0]++;

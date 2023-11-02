@@ -72,17 +72,18 @@ public class Quicksort {
         int[] cacheHits = new int[] { 0 };
         int[] diskReads = new int[] { 0 };
         int[] diskWrites = new int[] { 0 };
-        long startTime = System.currentTimeMillis();
 
         int numBuffers = Integer.parseInt(args[1]);
-        BufferPool buffPool = new BufferPool(numBuffers, 4096, args[0],
-            cacheHits, diskReads, diskWrites);
+        BufferPool buffPool = new BufferPool(numBuffers, 16, args[0], cacheHits,
+            diskReads, diskWrites);
 
         Sort sort = new Sort();
+
+        long startTime = System.currentTimeMillis();
         sort.quickSort(buffPool, 0, (buffPool.getSize()) - 4);
         buffPool.flushAll();
-
         long endTime = System.currentTimeMillis();
+
         long executionTime = endTime - startTime;
         reportMetrics(cacheHits, diskReads, diskWrites, executionTime, args[2]);
     }

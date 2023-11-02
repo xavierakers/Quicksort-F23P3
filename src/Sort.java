@@ -29,31 +29,47 @@ public class Sort {
      */
     public void quickSort(BufferPool bufferPool, int left, int right)
         throws Exception {
-        // right - left < 40
+
+        // check duplicates if all duplicates return
+
         if (right - left < 40) {
-            insort(bufferPool, left, right);
+            insertionSort(bufferPool, left, right);
         }
         else {
             int pivotindex = findPivot(left, right);
             byte[] pivotVal = bufferPool.getPivot(pivotindex);
-
-            short key = getKey(pivotVal);
-
             bufferPool.getBytes(swap1, 4, (int)(right / 4) * 4);
             swap(bufferPool, pivotindex, right, pivotVal, swap1);
+if(true) {
+            //if (!(checkDup(bufferPool, left, right))) {
+                short key = getKey(pivotVal);
+                int newPivot = partition(bufferPool, left, right - 4, key);
 
-            int newPivot = partition(bufferPool, left, right - 4, key);
-
-            bufferPool.getBytes(swap1, 4, newPivot);
-            swap(bufferPool, newPivot, right, swap1, pivotVal);
-
-            if ((newPivot - left) > 1) {
-                quickSort(bufferPool, left, newPivot - 4);
+                bufferPool.getBytes(swap1, 4, newPivot);
+                swap(bufferPool, newPivot, right, swap1, pivotVal);
+                if ((newPivot - left) > 1) {
+                    quickSort(bufferPool, left, newPivot - 4);
+                }
+                if ((right - newPivot) > 1) {
+                    quickSort(bufferPool, newPivot + 4, right);
+                }
             }
-            if ((right - newPivot) > 1) {
-                quickSort(bufferPool, newPivot + 4, right);
-            }
+
         }
+    }
+
+
+    public boolean checkDup(BufferPool buffPool, int i, int j)
+        throws Exception {
+        buffPool.getBytes(swap1, 4, j);
+        while (i < j) {
+            buffPool.getBytes(swap2, 4, i);
+            if (getKey(swap1) != getKey(swap2)) {
+                return false;
+            }
+            i += 4;
+        }
+        return true;
     }
 
 
@@ -92,6 +108,7 @@ public class Sort {
         int right,
         short pivotVal)
         throws Exception {
+        // Adjusting for 4 bytes records
         right = (int)(right / 4) * 4;
 
         while (left <= right) {
@@ -108,16 +125,20 @@ public class Sort {
                     bufferPool.getBytes(swap2, 4, right);
                 }
             }
+
             if (right > left) {
                 swap(bufferPool, left, right, swap1, swap2);
             }
         }
+
         return left;
     }
 
 
-    public void insort(BufferPool bufferPool, int left, int right)
+    public void insertionSort(BufferPool bufferPool, int left, int right)
         throws Exception {
+        right = (int)(right / 4) * 4;
+        left = (int)(left / 4) * 4;
 
         for (int i = left + 4; i <= right; i += 4) {
             int j = i;
@@ -129,7 +150,6 @@ public class Sort {
                 if (key < prevKey) {
                     swap(bufferPool, j, j - 4, space, swap2);
                     j -= 4;
-
                 }
                 else if (key == prevKey) {
                     break;
@@ -139,6 +159,7 @@ public class Sort {
                 }
             }
         }
+
     }
 
 
@@ -182,22 +203,6 @@ public class Sort {
 
             bufferPool.insert(index1Val, 4, index2);
             bufferPool.insert(index2Val, 4, index1);
-
-        }
-    }
-
-
-    private void swap(BufferPool bufferPool, int index1, int index2)
-        throws Exception {
-        index2 = (int)(index2 / 4) * 4;
-        index1 = (int)(index1 / 4) * 4;
-
-        if (index1 >= 0 && index1 < bufferPool.getSize() && index2 >= 0
-            && index2 < bufferPool.getSize()) {
-            bufferPool.getBytes(swap1, 4, index1);
-            bufferPool.getBytes(swap2, 4, index2);
-            bufferPool.insert(swap1, 4, index2);
-            bufferPool.insert(swap2, 4, index1);
 
         }
     }
